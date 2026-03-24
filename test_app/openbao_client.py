@@ -14,26 +14,9 @@ class OpenBaoClient:
             token = os.getenv('OPENBAO_TOKEN')
         )
         # Set the mount point for all secret operations
-        self.mount_point = 'test_vault'
+        self.mount_point = os.getenv('vault')
     
     def get_secret(self, path):
-        """
-        Retrieve a secret from OpenBao KV v2 engine.
-        
-        Args:
-            path (str): The path to the secret (e.g., 'locked/db_sk')
-                       Do NOT include the mount point or '/data/' prefix
-        
-        Returns:
-            dict: The secret data, or None if retrieval fails
-            
-        Example:
-            secret = openbao.get_secret('locked/db_sk')
-            # Returns: {'db_sk': 'your-secret-value'}
-            
-            secret = openbao.get_secret('editable/config')
-            # Returns: {'key1': 'value1', 'key2': 'value2'}
-        """
         try:
             # Read from KV v2 engine with custom mount point
             # hvac automatically adds '/data/' for KV v2
@@ -46,6 +29,7 @@ class OpenBaoClient:
         except Exception as e:
             print(f"Error retrieving secret from OpenBao at {self.mount_point}/{path}: {e}")
             return None
+        
     
     def is_authenticated(self):
         """Check if OpenBao client is properly authenticated."""
@@ -57,7 +41,21 @@ class OpenBaoClient:
         except Exception as e:
             print(f"✗ Authentication check failed: {e}")
             return False
-
+        
+    #test
+    def write_secret(self, path, secret_data):
+        """Write/update a secret in OpenBao."""
+        try:
+            self.client.secrets.kv.v2.create_or_update_secret(
+                path=path,
+                secret=secret_data,
+                mount_point=self.mount_point
+            )
+            return True
+        except Exception as e:
+            print(f"Error writing secret to OpenBao at {self.mount_point}/{path}: {e}")
+            return False
+    
 # Initialize the OpenBao client globally so Django can use it
 openbao = OpenBaoClient()
 
