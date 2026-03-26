@@ -54,6 +54,16 @@ class OpenBaoClient:
             print(f"Error writing secret to OpenBao at {self.mount_point}/{path}: {e}")
             return False
 
+    def is_locked_path(self, path: str) -> bool:
+        normalized = path.replace("\\", "/").lstrip("/")
+        return normalized.startswith("locked/")
+
+
+    def is_editable_path(self, path: str) -> bool:
+        normalized = path.replace("\\", "/").lstrip("/")
+        return normalized.startswith("editable/")
+
+
 # Initialize the OpenBao client globally so Django can use it
 openbao = OpenBaoClient()
 

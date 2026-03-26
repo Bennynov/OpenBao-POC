@@ -52,14 +52,18 @@ def secret_updater(request):
      # GET - Load all secrets WITH their current values
     secrets_with_values = []
     for secret_id, secret_config in SECRETS.items():
-        # Load current value from OpenBao
-        secret_data = openbao.get_secret(secret_config["path"])
+        path = secret_config["path"]
+
+        if openbao.is_locked_path(path):
+            continue
+        if not openbao.is_editable_path(path):
+            continue
+
+        secret_data = openbao.get_secret(path)
         current_value = ""
-        
         if secret_data:
             current_value = secret_data.get(secret_config["key"], "")
-        
-        # Add to list
+
         secrets_with_values.append({
             "id": secret_id,
             "label": secret_config["label"],
