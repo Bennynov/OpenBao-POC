@@ -14,7 +14,7 @@ SECRETS = {
     "secret_2": {
         "path": "editable/test_2",
         "key": "test 2",
-        "label": "test 2"
+        "label": "test secret 2"
     },
     "secret_3": {
         "path": "locked/db_sk",

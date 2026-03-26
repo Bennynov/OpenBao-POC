@@ -58,7 +58,6 @@ class OpenBaoClient:
         normalized = path.replace("\\", "/").lstrip("/")
         return normalized.startswith("locked/")
 
-
     def is_editable_path(self, path: str) -> bool:
         normalized = path.replace("\\", "/").lstrip("/")
         return normalized.startswith("editable/")
