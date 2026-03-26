@@ -29,7 +29,6 @@ class OpenBaoClient:
         except Exception as e:
             print(f"Error retrieving secret from OpenBao at {self.mount_point}/{path}: {e}")
             return None
-        
     
     def is_authenticated(self):
         """Check if OpenBao client is properly authenticated."""
@@ -41,8 +40,7 @@ class OpenBaoClient:
         except Exception as e:
             print(f"✗ Authentication check failed: {e}")
             return False
-        
-    #test
+    
     def write_secret(self, path, secret_data):
         """Write/update a secret in OpenBao."""
         try:
@@ -55,7 +53,7 @@ class OpenBaoClient:
         except Exception as e:
             print(f"Error writing secret to OpenBao at {self.mount_point}/{path}: {e}")
             return False
-    
+
 # Initialize the OpenBao client globally so Django can use it
 openbao = OpenBaoClient()
 
