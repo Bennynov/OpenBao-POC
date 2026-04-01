@@ -15,7 +15,7 @@
             <form class="secretForm" data-id="{{ secret.id }}">
                 {% csrf_token %}
                 <label>Value:</label>
-                <textarea class="secret-value" name="value" rows="4" style="resize: none;">{{ secret.value }}</textarea>
+                <textarea class="secret-value" name="value" rows="4" placeholder="Current: {{ secret.value }}" style="resize: none;"></textarea>
                 <button type="submit">Save</button>
                 <div class="message"></div>
             </form>

@@ -54,8 +54,6 @@ def secret_updater(request):
     for secret_id, secret_config in SECRETS.items():
         path = secret_config["path"]
 
-        if openbao.is_locked_path(path):
-            continue
         if not openbao.is_editable_path(path):
             continue
 
