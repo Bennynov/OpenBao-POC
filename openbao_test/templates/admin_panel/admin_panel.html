@@ -2,56 +2,395 @@
 <html>
 <head>
     <title>Secret Updater</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
+        <!--
+            Main page wrapper.
+            This top block stays visible behind the overlay and contains the section selector cards.
+        -->
     <div class="container">
         <h1>Secret Updater</h1>
-        
-        {% for secret in secrets %}
-        <div class="secret-block">
-            <h2>{{ secret.label }}</h2>
-            <form class="secretForm" data-id="{{ secret.id }}">
-                {% csrf_token %}
-                <label>Value:</label>
-                <textarea class="secret-value" name="value" rows="4" placeholder="Current: {{ secret.value }}" style="resize: none;"></textarea>
-                <button type="submit">Save</button>
-                <div class="message"></div>
-            </form>
-        </div>
-        {% endfor %}
-        
+
+                <!--
+                    Section selector grid:
+                    - Each button selects one logical section (docs/drive/meet/message/extra)
+                    - Buttons do NOT navigate to another page
+                    - They only open the detached overlay workspace
+                -->
+        <section class="section-card-grid" aria-label="Secret sections">
+                        <!--
+                            About <span>:
+                            - <span> is an inline HTML container.
+                            - It has no visual style by default.
+                            - We use it to style small pieces of text/icon inside each card.
+                        -->
+            <button type="button" class="section-card" data-section="docs">
+                <span class="section-card-icon">📄</span>
+                <span class="section-card-title">Docs</span>
+                <span class="section-card-helper">Document service credentials</span>
+                <span class="section-card-count">{{ secrets_by_section.docs|length }} editable secrets</span>
+            </button>
+
+            <button type="button" class="section-card" data-section="drive">
+                <span class="section-card-icon">🗂️</span>
+                <span class="section-card-title">Drive</span>
+                <span class="section-card-helper">Storage and file workflow credentials</span>
+                <span class="section-card-count">{{ secrets_by_section.drive|length }} editable secrets</span>
+            </button>
+
+            <button type="button" class="section-card" data-section="meet">
+                <span class="section-card-icon">🎥</span>
+                <span class="section-card-title">Meet</span>
+                <span class="section-card-helper">Meeting platform integrations</span>
+                <span class="section-card-count">{{ secrets_by_section.meet|length }} editable secrets</span>
+            </button>
+
+            <button type="button" class="section-card" data-section="message">
+                <span class="section-card-icon">💬</span>
+                <span class="section-card-title">Message</span>
+                <span class="section-card-helper">Messaging channel service keys</span>
+                <span class="section-card-count">{{ secrets_by_section.message|length }} editable secrets</span>
+            </button>
+
+            <button type="button" class="section-card" data-section="extra">
+                <span class="section-card-icon">✨</span>
+                <span class="section-card-title">Extra</span>
+                <span class="section-card-helper">Root-level editable secrets only</span>
+                <span class="section-card-count">{{ secrets_by_section.extra|length }} editable secrets</span>
+            </button>
+        </section>
     </div>
 
+    <!--
+      Single detached overlay workspace:
+      - Only one overlay exists in the DOM
+      - It is hidden by default (aria-hidden="true")
+      - Clicking a section card opens this overlay and loads that section
+    -->
+    <div id="workspaceOverlay" class="workspace-overlay" aria-hidden="true">
+        <!-- Darkened background behind the floating workspace panel -->
+        <div class="workspace-backdrop" data-overlay-close="true"></div>
+
+        <!-- Floating editor workspace panel (detached from card grid) -->
+        <section class="workspace-panel" role="dialog" aria-modal="true" aria-labelledby="workspaceTitle">
+            <header class="workspace-header">
+                <div class="workspace-heading">
+                    <span id="workspaceIcon" class="workspace-icon">📄</span>
+                    <div>
+                        <h2 id="workspaceTitle">Docs Secrets</h2>
+                        <p id="workspaceSubtitle">Select a secret and update only its value.</p>
+                    </div>
+                </div>
+
+                <!-- Explicit close control for the overlay -->
+                <button id="overlayCloseButton" class="workspace-close" type="button" aria-label="Close workspace">×</button>
+            </header>
+
+            <!--
+              Workspace body has two panes:
+              - Left: list of secrets for current section
+              - Right: single active editor form for selected secret
+            -->
+            <div class="workspace-content">
+                <aside class="secret-menu-pane">
+                    <h3>Secret Directory</h3>
+                    <p>Select a secret name to edit its value.</p>
+                    <!-- JS injects secret list buttons here -->
+                    <div id="secretMenuList" class="secret-menu-list"></div>
+                </aside>
+
+                <div class="secret-editor-pane">
+                    <h3>Value Editor</h3>
+                    <p>Update secret values with inline save feedback.</p>
+
+                    <!-- Empty state shown when selected section has no secrets -->
+                    <div id="secretEditorEmpty" class="secret-editor-empty">
+                        No editable secrets in this section.
+                    </div>
+
+                    <!--
+                      Single reusable form:
+                      JS fills this with the currently selected secret.
+                      We do NOT render one form per secret.
+                    -->
+                    <form id="secretEditorForm" class="secret-editor-card is-hidden">
+                        {% csrf_token %}
+                        <!-- Hidden input stores the selected secret id for POST -->
+                        <input id="activeSecretId" type="hidden" name="id" value="">
+
+                        <div class="secret-meta">
+                            <span class="secret-meta-label">Secret Name</span>
+                            <span id="activeSecretLabel" class="secret-meta-value"></span>
+                        </div>
+
+                        <label for="activeSecretValue">Secret Value</label>
+                                                <!--
+                                                    Textarea is the only editable field.
+                                                    Secret value is editable; secret metadata stays fixed.
+                                                -->
+                        <textarea id="activeSecretValue" class="secret-value editor-textarea" name="value" rows="6" placeholder="Current value"></textarea>
+
+                        <div class="editor-actions">
+                            <button type="submit" class="save-button">Save Value</button>
+                            <div id="activeSecretMessage" class="message" aria-live="polite"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!--
+      Safely embeds Python/Django object as JSON in the page.
+      JS reads this and builds the dynamic menu/editor state.
+    -->
+    {{ secrets_by_section|json_script:"secretsData" }}
+
     <script>
-        document.querySelectorAll('.secretForm').forEach(form => {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const id = form.getAttribute('data-id');
-                const value = form.querySelector('.secret-value').value;
-                const token = form.querySelector('[name=csrfmiddlewaretoken]').value;
-                const messageDiv = form.querySelector('.message');
-                
-                try {
-                    const response = await fetch('', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': token,
-                        },
-                        body: JSON.stringify({ id, value })
-                    });
-                    
-                    const data = await response.json();
-                    messageDiv.textContent = data.message;
-                    messageDiv.className = 'message ' + (response.ok ? 'success' : 'error');
-                } catch (err) {
-                    messageDiv.textContent = 'Error: ' + err;
-                    messageDiv.className = 'message error';
-                }
+        // Parse server-provided JSON section data into a JS object.
+        const secretsBySection = JSON.parse(document.getElementById('secretsData').textContent);
+
+        // Static UI text/icon metadata for each section header.
+        const sectionMeta = {
+            docs: {
+                icon: '📄',
+                title: 'Docs Secrets',
+                subtitle: 'Manage document service secrets in a focused workspace.'
+            },
+            drive: {
+                icon: '🗂️',
+                title: 'Drive Secrets',
+                subtitle: 'Manage storage and file workflow secrets in one place.'
+            },
+            meet: {
+                icon: '🎥',
+                title: 'Meet Secrets',
+                subtitle: 'Manage meeting service secrets with clear section context.'
+            },
+            message: {
+                icon: '💬',
+                title: 'Message Secrets',
+                subtitle: 'Manage messaging service credentials and tokens.'
+            },
+            extra: {
+                icon: '✨',
+                title: 'Extra Secrets',
+                subtitle: 'Manage root-level editable secrets under editable/.'
+            }
+        };
+
+        //
+        // DOM queries
+        //
+        // querySelectorAll('.section-card') means:
+        // - find ALL elements matching CSS selector .section-card
+        // - return a NodeList (array-like list of elements)
+        // - we loop over it to attach click handlers to each card
+        const cards = document.querySelectorAll('.section-card');
+
+        // Single overlay + header elements
+        const overlay = document.getElementById('workspaceOverlay');
+        const overlayCloseButton = document.getElementById('overlayCloseButton');
+        const workspaceTitle = document.getElementById('workspaceTitle');
+        const workspaceSubtitle = document.getElementById('workspaceSubtitle');
+        const workspaceIcon = document.getElementById('workspaceIcon');
+
+        // Left pane and right pane elements
+        const secretMenuList = document.getElementById('secretMenuList');
+        const secretEditorForm = document.getElementById('secretEditorForm');
+        const secretEditorEmpty = document.getElementById('secretEditorEmpty');
+        const activeSecretIdInput = document.getElementById('activeSecretId');
+        const activeSecretLabel = document.getElementById('activeSecretLabel');
+        const activeSecretValue = document.getElementById('activeSecretValue');
+        const activeSecretMessage = document.getElementById('activeSecretMessage');
+
+        // Local UI state:
+        // - remember active secret per section so selection persists when switching sections
+        const activeSecretBySection = {};
+        let activeSection = null;
+        let activeSecret = null;
+
+        // Returns safe array for section data (empty array if missing)
+        function getSectionSecrets(sectionKey) {
+            const sectionSecrets = secretsBySection[sectionKey];
+            return Array.isArray(sectionSecrets) ? sectionSecrets : [];
+        }
+
+        // Updates overlay title/subtitle/icon based on active section
+        function updateHeader(sectionKey) {
+            const meta = sectionMeta[sectionKey];
+            if (!meta) {
+                return;
+            }
+
+            workspaceTitle.textContent = meta.title;
+            workspaceSubtitle.textContent = meta.subtitle;
+            workspaceIcon.textContent = meta.icon;
+        }
+
+        // Highlights selected secret in the left menu list
+        function setActiveMenuItem(secretId) {
+            secretMenuList.querySelectorAll('.secret-menu-item').forEach(item => {
+                item.classList.toggle('is-active', item.getAttribute('data-secret-id') === secretId);
             });
+        }
+
+        // Toggles right pane between empty state and editor form
+        function showEditorEmptyState(show) {
+            secretEditorEmpty.classList.toggle('is-hidden', !show);
+            secretEditorForm.classList.toggle('is-hidden', show);
+        }
+
+        // Binds one selected secret to the single editor form
+        function setActiveSecret(secret) {
+            activeSecret = secret;
+            activeSecretBySection[activeSection] = secret.id;
+
+            setActiveMenuItem(secret.id);
+            showEditorEmptyState(false);
+
+            activeSecretIdInput.value = secret.id;
+            activeSecretLabel.textContent = secret.label;
+            activeSecretValue.value = '';
+            activeSecretValue.placeholder = `Current: ${secret.value || ''}`;
+            activeSecretMessage.textContent = '';
+            activeSecretMessage.className = 'message';
+        }
+
+        // Builds clickable secret items in left menu for current section
+        function renderSecretMenu(sectionSecrets) {
+            secretMenuList.innerHTML = '';
+
+            sectionSecrets.forEach(secret => {
+                // Create one menu button per secret
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'secret-menu-item';
+                item.setAttribute('data-secret-id', secret.id);
+
+                // One span in each menu item: secret label
+                item.innerHTML = `
+                    <span class="secret-menu-label"></span>
+                `;
+
+                // Fill the label with text safely via textContent
+                item.querySelector('.secret-menu-label').textContent = secret.label;
+
+                // Clicking a secret updates the single editor form
+                item.addEventListener('click', () => setActiveSecret(secret));
+                secretMenuList.appendChild(item);
+            });
+        }
+
+        // Renders entire overlay body for selected section
+        function renderSection(sectionKey) {
+            activeSection = sectionKey;
+            updateHeader(sectionKey);
+
+            cards.forEach(card => {
+                card.classList.toggle('is-active', card.getAttribute('data-section') === sectionKey);
+            });
+
+            const sectionSecrets = getSectionSecrets(sectionKey);
+            if (!sectionSecrets.length) {
+                // Empty section: no menu items and no editor form
+                secretMenuList.innerHTML = '<div class="secret-menu-empty">No editable secrets in this section.</div>';
+                activeSecret = null;
+                showEditorEmptyState(true);
+                return;
+            }
+
+            renderSecretMenu(sectionSecrets);
+
+            const rememberedSecretId = activeSecretBySection[sectionKey];
+            const initialSecret = sectionSecrets.find(secret => secret.id === rememberedSecretId) || sectionSecrets[0];
+            setActiveSecret(initialSecret);
+        }
+
+        // Opens single overlay and loads requested section
+        function openOverlay(sectionKey) {
+            overlay.classList.add('is-open');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overlay-open');
+            renderSection(sectionKey);
+        }
+
+        // Closes overlay and clears only UI-active state
+        function closeOverlay() {
+            overlay.classList.remove('is-open');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overlay-open');
+            cards.forEach(card => card.classList.remove('is-active'));
+            activeSection = null;
+            activeSecret = null;
+        }
+
+        // Attach click behavior to every section card
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                openOverlay(card.getAttribute('data-section'));
+            });
+        });
+
+        // Close via top-right close button
+        overlayCloseButton.addEventListener('click', closeOverlay);
+
+        // Close when backdrop is clicked
+        overlay.addEventListener('click', event => {
+            if (event.target.hasAttribute('data-overlay-close')) {
+                closeOverlay();
+            }
+        });
+
+        // Close via Escape key
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+                closeOverlay();
+            }
+        });
+
+        // Single editor form submit handler (save value only)
+        secretEditorForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            if (!activeSecret) {
+                return;
+            }
+
+            const id = activeSecretIdInput.value;
+            const value = activeSecretValue.value;
+            const token = secretEditorForm.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Immediate inline feedback while request is in progress
+            activeSecretMessage.textContent = 'Saving...';
+            activeSecretMessage.className = 'message';
+
+            try {
+                const response = await fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': token,
+                    },
+                    body: JSON.stringify({ id, value })
+                });
+
+                const data = await response.json();
+                activeSecretMessage.textContent = data.message;
+                activeSecretMessage.className = 'message ' + (response.ok ? 'success' : 'error');
+
+                if (response.ok) {
+                    // Keep local in-memory value in sync after successful save
+                    activeSecret.value = value;
+                    activeSecretValue.value = '';
+                    activeSecretValue.placeholder = `Current: ${value}`;
+                }
+            } catch (error) {
+                activeSecretMessage.textContent = `Error: ${error}`;
+                activeSecretMessage.className = 'message error';
+            }
         });
     </script>
 </body>
