@@ -28,6 +28,7 @@
     const secretMenuList = document.getElementById("secretMenuList");
     const secretEditorForm = document.getElementById("secretEditorForm");
     const secretEditorEmpty = document.getElementById("secretEditorEmpty");
+    const activeSectionIdInput = document.getElementById("activeSectionId");
     const activeSecretIdInput = document.getElementById("activeSecretId");
     const activeSecretLabel = document.getElementById("activeSecretLabel");
     const activeSecretValue = document.getElementById("activeSecretValue");
@@ -37,9 +38,12 @@
         return;
     }
 
+    const saveButton = secretEditorForm.querySelector("button[type='submit']");
+
     const activeSecretBySection = {};
     let activeSectionId = null;
     let activeSecret = null;
+    let isSubmitting = false;
 
     function getSection(sectionId) {
         return sectionsById[sectionId] || null;
@@ -114,6 +118,9 @@
         }
 
         activeSectionId = sectionId;
+        if (activeSectionIdInput) {
+            activeSectionIdInput.value = sectionId;
+        }
         updateHeader(section);
 
         cards.forEach((card) => {
@@ -155,6 +162,9 @@
 
         activeSectionId = null;
         activeSecret = null;
+        if (activeSectionIdInput) {
+            activeSectionIdInput.value = "";
+        }
     }
 
     cards.forEach((card) => {
@@ -181,17 +191,24 @@
     secretEditorForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        if (!activeSecret) {
+        if (!activeSecret || isSubmitting) {
             return;
         }
 
-        const sectionId = activeSectionId;
+        const sectionId = (activeSectionIdInput && activeSectionIdInput.value) || activeSectionId;
         const secretId = activeSecretIdInput.value;
         const value = activeSecretValue.value;
         const token = secretEditorForm.querySelector("[name=csrfmiddlewaretoken]").value;
 
         if (!sectionId || !secretId) {
+            activeSecretMessage.textContent = "Secret selection is missing. Please reselect and try again.";
+            activeSecretMessage.className = "message error";
             return;
+        }
+
+        isSubmitting = true;
+        if (saveButton) {
+            saveButton.disabled = true;
         }
 
         activeSecretMessage.textContent = "Saving...";
@@ -207,7 +224,22 @@
                 body: JSON.stringify({ section_id: sectionId, secret_id: secretId, value }),
             });
 
-            const data = await response.json();
+            let data = { message: "Request failed" };
+            const contentType = response.headers.get("content-type") || "";
+
+            if (contentType.includes("application/json")) {
+                try {
+                    data = await response.json();
+                } catch (_parseError) {
+                    data = { message: "Received invalid JSON response" };
+                }
+            } else {
+                const textResponse = await response.text();
+                if (textResponse && textResponse.trim()) {
+                    data = { message: textResponse.trim() };
+                }
+            }
+
             activeSecretMessage.textContent = data.message;
             activeSecretMessage.className = "message " + (response.ok ? "success" : "error");
 
@@ -217,8 +249,13 @@
                 activeSecretValue.placeholder = `Current: ${value}`;
             }
         } catch (error) {
-            activeSecretMessage.textContent = `Error: ${error}`;
+            activeSecretMessage.textContent = "Error: request failed";
             activeSecretMessage.className = "message error";
+        } finally {
+            isSubmitting = false;
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
         }
     });
 })();

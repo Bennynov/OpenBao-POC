@@ -66,12 +66,12 @@ SECTION_CONFIG = [
         ],
     },
     {
-        "id": "Calander",
-        "title": "calander",
+        "id": "calendar",
+        "title": "Calendar",
         "icon": "🗓️",
-        "card_helper": "calander to plan and see planned meetings",
-        "workspace_title": "calander Secrets",
-        "workspace_subtitle": "Manage calander service credentials and tokens.",
+        "card_helper": "Calendar to plan and see scheduled meetings",
+        "workspace_title": "Calendar Secrets",
+        "workspace_subtitle": "Manage calendar service credentials and tokens.",
         "secrets": [
             {
                 "id": "secret_1",

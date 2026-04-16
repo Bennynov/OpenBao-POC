@@ -59,6 +59,7 @@
 
                     <form id="secretEditorForm" class="secret-editor-card is-hidden">
                         {% csrf_token %}
+                        <input id="activeSectionId" type="hidden" name="section_id" value="">
                         <input id="activeSecretId" type="hidden" name="secret_id" value="">
 
                         <div class="secret-meta">
