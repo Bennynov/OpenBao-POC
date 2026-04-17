@@ -361,7 +361,7 @@ h1 {
 .secret-meta {
     display: grid;
     gap: 4px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .secret-meta-label {
@@ -370,6 +370,10 @@ h1 {
     letter-spacing: 0.04em;
     color: #607194;
     font-weight: 700;
+}
+
+.secret-meta-label:not(:first-child) {
+    margin-top: 8px;
 }
 
 .secret-meta-value {
@@ -384,6 +388,16 @@ h1 {
     font-size: 0.88rem;
 }
 
+.secret-editor-card .editor-field-label {
+    display: inline-block;
+    margin: 6px 0 8px;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #607194;
+    font-weight: 700;
+}
+
 /*
     Editable value input area:
     - resize: none prevents manual drag resizing
@@ -391,8 +405,8 @@ h1 {
 */
 .editor-textarea {
     width: 100%;
-    min-height: 220px;
-    max-height: 350px;
+    min-height: 150px;
+    max-height: 200px;
     border-radius: 12px;
     border: 1px solid #ccd8ef;
     padding: 12px;
