@@ -31,6 +31,7 @@
     const activeSectionIdInput = document.getElementById("activeSectionId");
     const activeSecretIdInput = document.getElementById("activeSecretId");
     const activeSecretLabel = document.getElementById("activeSecretLabel");
+    const activeSecretDescription = document.getElementById("activeSecretDescription");
     const activeSecretValue = document.getElementById("activeSecretValue");
     const activeSecretMessage = document.getElementById("activeSecretMessage");
 
@@ -83,6 +84,7 @@
 
         activeSecretIdInput.value = secret.id;
         activeSecretLabel.textContent = secret.label;
+        activeSecretDescription.textContent = secret.description || "";
         activeSecretValue.value = "";
         activeSecretValue.placeholder = `Current: ${secret.value || ""}`;
         activeSecretMessage.textContent = "";

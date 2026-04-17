@@ -29,6 +29,12 @@ def _validate_and_index_sections(section_config):
                     f"Missing required secret id in section '{section_id}' at index {secret_position}."
                 )
 
+            if "description" not in secret:
+                raise ValueError(
+                    f"Missing required field 'description' in section '{section_id}' secret '{local_secret_id}'. "
+                    "Add a description for every secret entry."
+                )
+
             if local_secret_id in seen_local_secret_ids:
                 raise ValueError(
                     f"Duplicate secret id in section '{section_id}': '{local_secret_id}'"
@@ -39,6 +45,7 @@ def _validate_and_index_sections(section_config):
                 "path": secret["path"],
                 "key": secret["key"],
                 "label": secret["label"],
+                "description": str(secret.get("description") or "").strip(),
             }
 
         normalized_sections.append(
@@ -90,6 +97,7 @@ def build_sections_payload(openbao_client, section_config):
                 {
                     "id": local_secret_id,
                     "label": secret_config["label"],
+                    "description": secret_config.get("description", ""),
                     "value": current_value,
                 }
             )
