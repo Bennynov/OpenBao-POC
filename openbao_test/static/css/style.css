@@ -55,6 +55,23 @@ h1 {
     letter-spacing: -0.02em;
 }
 
+/* Header row for page title + logout button */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.page-title {
+    margin: 0;
+}
+
+.logout-inline-form {
+    margin: 0;
+}
+
 /*
     Section selector cards row:
     responsive auto-fit grid for Docs / Drive / Meet / Message / Extra.
@@ -449,6 +466,25 @@ h1 {
 .save-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 22px rgba(47, 111, 237, 0.28);
+}
+
+.logout-button {
+    appearance: none;
+    border: 1px solid #2e66d4;
+    background: linear-gradient(180deg, #3f7bf4, #2f6fed);
+    color: #ffffff;
+    font-weight: 620;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: transform 130ms ease, box-shadow 130ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.logout-button:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, #ff3b30, #d92d20);
+    border-color: #c81e1e;
+    box-shadow: 0 10px 22px rgba(217, 45, 32, 0.3);
 }
 
 /* Inline feedback message area for save result */

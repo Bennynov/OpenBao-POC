@@ -9,7 +9,13 @@
 <body>
     <!-- Main page wrapper with dynamic section cards -->
     <div class="container">
-        <h1>Secret Updater</h1>
+        <div class="page-header">
+            <h1 class="page-title">Secret Updater</h1>
+            <form action="{% url 'oidc_logout' %}" method="post" class="logout-inline-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">Sign out</button>
+            </form>
+        </div>
 
         <section class="section-card-grid" aria-label="Secret sections">
             {% for section in sections %}

@@ -5,11 +5,14 @@ from django.middleware.csrf import get_token
 from test_app.openbao_client import openbao
 from .admin_panel_sections import SECTION_CONFIG
 from .admin_panel_service import SECRET_INDEX, build_sections_payload
+from django.contrib.auth.decorators import login_required
 from .admin_panel_update_service import (
     SecretUpdateError,
     parse_secret_update_request,
     update_secret_value,
 )
+
+
 
 
 def _error_response(message, status_code):
@@ -25,6 +28,7 @@ def _handle_secret_update(request):
 
     return JsonResponse({"status": "success", "message": "Secret updated"})
 
+@login_required
 @require_http_methods(["GET", "POST"])
 def secret_updater(request):
     """Display and manage all secrets from OpenBao."""
@@ -52,5 +56,4 @@ def placeholder(request):
         "sections": [],
         "admin_panel_data": {"sections": []},
     }
-    return render(request, "admin_panel/admin_panel.html", context)
-
+    return render(request, "admin_panel/admin_panel.html", context)    
