@@ -13,8 +13,6 @@ from .admin_panel_update_service import (
 )
 
 
-
-
 def _error_response(message, status_code):
     return JsonResponse({"status": "error", "message": message}, status=status_code)
 
@@ -57,3 +55,13 @@ def placeholder(request):
         "admin_panel_data": {"sections": []},
     }
     return render(request, "admin_panel/admin_panel.html", context)    
+
+import jwt
+
+@login_required
+def debug_token(request):
+    token = request.session.get("oidc_id_token")
+    if not token:
+        return JsonResponse({"error": "no token found in session"})
+    claims = jwt.decode(token, options={"verify_signature": False})
+    return JsonResponse(claims)
