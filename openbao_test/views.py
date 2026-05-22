@@ -57,11 +57,42 @@ def placeholder(request):
     return render(request, "admin_panel/admin_panel.html", context)    
 
 import jwt
+import requests as _requests
+from django.conf import settings as _settings
 
 @login_required
 def debug_token(request):
-    token = request.session.get("oidc_id_token")
-    if not token:
-        return JsonResponse({"error": "no token found in session"})
-    claims = jwt.decode(token, options={"verify_signature": False})
-    return JsonResponse(claims)
+    id_token = request.session.get("oidc_id_token")
+    access_token = request.session.get("oidc_access_token")
+
+    out = {
+        "configured_scopes": getattr(_settings, "OIDC_RP_SCOPES", None),
+        "id_token_claims": None,
+        "access_token_claims": None,
+        "userinfo": None,
+        "userinfo_error": None,
+    }
+
+    if id_token:
+        out["id_token_claims"] = jwt.decode(id_token, options={"verify_signature": False})
+
+    if access_token:
+        try:
+            out["access_token_claims"] = jwt.decode(access_token, options={"verify_signature": False})
+        except Exception as e:
+            out["access_token_claims"] = {"_decode_error": str(e), "_raw_prefix": access_token[:20]}
+
+        try:
+            resp = _requests.get(
+                _settings.OIDC_OP_USER_ENDPOINT,
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=5,
+            )
+            try:
+                out["userinfo"] = resp.json()
+            except Exception:
+                out["userinfo"] = {"_status": resp.status_code, "_body": resp.text}
+        except Exception as e:
+            out["userinfo_error"] = str(e)
+
+    return JsonResponse(out, json_dumps_params={"indent": 2})
