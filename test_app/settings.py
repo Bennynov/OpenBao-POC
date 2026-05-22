@@ -69,7 +69,7 @@ OIDC_OP_END_SESSION_ENDPOINT = "https://identity.mosacloud.eu/oidc/v1/end_sessio
 OIDC_STORE_ID_TOKEN = True
 OIDC_OP_REVOCATION_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/revoke"
 OIDC_OP_LOGOUT_URL_METHOD = "openbao_test.logout.build_logout_url"
-OIDC_RP_SCOPES = "openid email profile urn:zitadel:iam:org:project:roles"
+OIDC_RP_SCOPES = "openid email profile urn:zitadel:iam:org:373477070904233998:roles"
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_USE_PKCE = True
 OIDC_REDIRECT_REQUIRE_HTTPS = os.getenv("OIDC_REDIRECT_REQUIRE_HTTPS", "True") == "True"
