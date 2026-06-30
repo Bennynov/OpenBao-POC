@@ -1,6 +1,7 @@
 """Service helpers for admin panel section payload and secret lookup."""
 
 from .admin_panel_sections import SECTION_CONFIG
+from .authz import is_authorized
 
 
 def _validate_and_index_sections(section_config):
@@ -16,6 +17,12 @@ def _validate_and_index_sections(section_config):
 
         if section_id in seen_section_ids:
             raise ValueError(f"Duplicate section id: '{section_id}'")
+
+        if not section.get("required_roles"):
+            raise ValueError(
+                f"Missing required field 'required_roles' in section '{section_id}'. "
+                "Every section must declare at least one role allowed to access it."
+            )
 
         seen_section_ids.add(section_id)
         section_secret_index = {}
@@ -67,12 +74,28 @@ def build_secret_index(section_config):
     }
 
 
-def build_sections_payload(openbao_client, section_config):
-    """Build UI payload from section config plus current OpenBao values."""
+def build_section_roles_index(section_config):
+    """Build section_id -> required_roles lookup for authorization checks."""
+    return {
+        section_data["section_id"]: section_data["section"]["required_roles"]
+        for section_data in _validate_and_index_sections(section_config)
+    }
+
+
+def build_sections_payload(openbao_client, section_config, user_roles):
+    """Build UI payload from section config plus current OpenBao values.
+
+    Sections the user isn't authorized for are skipped before any secret
+    values are fetched from OpenBao.
+    """
     sections_payload = []
 
     for section_data in _validate_and_index_sections(section_config):
         section = section_data["section"]
+
+        if not is_authorized(user_roles, section["required_roles"]):
+            continue
+
         section_payload = {
             "id": section_data["section_id"],
             "title": section["title"],
@@ -109,3 +132,4 @@ def build_sections_payload(openbao_client, section_config):
 
 
 SECRET_INDEX = build_secret_index(SECTION_CONFIG)
+SECTION_ROLES = build_section_roles_index(SECTION_CONFIG)
