@@ -16,6 +16,7 @@ class SectionConfigValidationTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [],
             }
         ]
@@ -32,6 +33,7 @@ class SectionConfigValidationTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [],
             },
             {
@@ -41,6 +43,7 @@ class SectionConfigValidationTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [],
             },
         ]
@@ -57,6 +60,7 @@ class SectionConfigValidationTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [
                     {
                         "path": "editable/docs/test_1",
@@ -80,6 +84,7 @@ class SectionConfigValidationTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [
                     {
                         "id": "secret_1",
@@ -103,6 +108,7 @@ class SectionConfigValidationTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [
                     {
                         "id": "secret_1",
@@ -136,6 +142,7 @@ class BuildSecretIndexTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [
                     {
                         "id": "secret_1",
@@ -173,6 +180,7 @@ class BuildSectionsPayloadFilterTests(SimpleTestCase):
                 "card_helper": "Document service credentials",
                 "workspace_title": "Docs Secrets",
                 "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
                 "secrets": [
                     {
                         "id": "secret_1",
@@ -192,7 +200,7 @@ class BuildSectionsPayloadFilterTests(SimpleTestCase):
             }
         ]
 
-        result = build_sections_payload(FakeClient(), valid_config)
+        result = build_sections_payload(FakeClient(), valid_config, {"docs_admin"})
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["id"], "section_1")
