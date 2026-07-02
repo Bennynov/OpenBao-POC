@@ -70,3 +70,24 @@ class SecretUpdaterViewTests(TestCase):
         self.assertEqual(response.json(), {"status": "error", "message": "Missing section_id or secret_id"})
         mock_parse.assert_called_once()
         mock_update.assert_not_called()
+
+    @patch("openbao_test.views.is_authorized", return_value=False)
+    @patch("openbao_test.views.parse_secret_update_request")
+    def test_post_unauthorized_section(self, mock_parse, mock_authz):
+        mock_parse.return_value = ("section_1", "secret_1", "newvalue")
+
+        response = self.client.post("/", data={"section_id": "section_1", "secret_id": "secret_1", "value": "newvalue"})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["status"], "error")
+
+    @patch("openbao_test.views.roles_changed_or_failed", return_value=True)
+    @patch("openbao_test.views.is_authorized", return_value=True)
+    @patch("openbao_test.views.parse_secret_update_request")
+    def test_post_roles_changed_triggers_logout(self, mock_parse, mock_authz, mock_introspect):
+        mock_parse.return_value = ("section_1", "secret_1", "newvalue")
+
+        response = self.client.post("/", data={"section_id": "section_1", "secret_id": "secret_1", "value": "newvalue"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {"status": "logout"})

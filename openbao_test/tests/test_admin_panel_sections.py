@@ -131,6 +131,22 @@ class SectionConfigValidationTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             _validate_and_index_sections(bad_config)
 
+    def test_missing_required_roles_raises_value_error(self):
+        bad_config = [
+            {
+                "title": "Docs",
+                "id": "section_1",
+                "icon": "📄",
+                "card_helper": "Document service credentials",
+                "workspace_title": "Docs Secrets",
+                "workspace_subtitle": "Manage document service secrets.",
+                "secrets": [],
+            }
+        ]
+
+        with self.assertRaises(ValueError):
+            _validate_and_index_sections(bad_config)
+
 
 class BuildSecretIndexTests(SimpleTestCase):
     def test_build_secret_index_with_valid_config(self):
@@ -208,3 +224,36 @@ class BuildSectionsPayloadFilterTests(SimpleTestCase):
         self.assertEqual(len(result[0]["secrets"]), 1)
         self.assertEqual(result[0]["secrets"][0]["id"], "secret_1")
         self.assertEqual(result[0]["secrets"][0]["value"], "current value")
+
+
+class BuildSectionsPayloadGetSecretTests(SimpleTestCase):
+    def test_get_secret_returns_none_shows_empty_value(self):
+        class NullClient(FakeClient):
+            def get_secret(self, path):
+                return None
+
+        config = [
+            {
+                "title": "Docs",
+                "id": "section_1",
+                "icon": "📄",
+                "card_helper": "Document service credentials",
+                "workspace_title": "Docs Secrets",
+                "workspace_subtitle": "Manage document service secrets.",
+                "required_roles": {"docs_admin"},
+                "secrets": [
+                    {
+                        "id": "secret_1",
+                        "path": "editable/docs/test_1",
+                        "key": "test 1",
+                        "label": "test secret message test",
+                        "description": "Used by the docs service for API authentication.",
+                    }
+                ],
+            }
+        ]
+
+        result = build_sections_payload(NullClient(), config, {"docs_admin"})
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["secrets"][0]["value"], "")
