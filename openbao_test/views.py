@@ -3,80 +3,57 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.middleware.csrf import get_token
 from test_app.openbao_client import openbao
-import json
+from .admin_panel_sections import SECTION_CONFIG
+from .admin_panel_service import SECRET_INDEX, build_sections_payload
+from django.contrib.auth.decorators import login_required
+from .admin_panel_update_service import (
+    SecretUpdateError,
+    parse_secret_update_request,
+    update_secret_value,
+)
 
-SECRETS = {
-    "secret_1": {
-        "path": "editable/test",
-        "key": "test",
-        "label": "Test Secret"
-    },
-    "secret_2": {
-        "path": "editable/test_2",
-        "key": "test 2",
-        "label": "test secret 2"
-    },
-    "secret_3": {
-        "path": "locked/db_sk",
-        "key": "db_sk",
-        "label": "should not show secret"
-    },
-}
 
+
+
+def _error_response(message, status_code):
+    return JsonResponse({"status": "error", "message": message}, status=status_code)
+
+
+def _handle_secret_update(request):
+    try:
+        section_id, secret_id, new_value = parse_secret_update_request(request)
+        update_secret_value(openbao, SECRET_INDEX, section_id, secret_id, new_value)
+    except SecretUpdateError as exc:
+        return _error_response(exc.message, exc.status_code)
+
+    return JsonResponse({"status": "success", "message": "Secret updated"})
+
+@login_required
 @require_http_methods(["GET", "POST"])
 def secret_updater(request):
     """Display and manage all secrets from OpenBao."""
-    
+
+    # POST handles save requests from the editor form.
     if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            secret_id = data.get("id", "")
-            new_value = data.get("value", "")
-            
-            # Validate secret_id exists on server
-            if secret_id not in SECRETS:
-                raise Exception("Invalid secret")
-            
-            secret_config = SECRETS[secret_id]
-            path = secret_config["path"]
-            key = secret_config["key"]
-            
-            # Update secret in OpenBao
-            if openbao.write_secret(path, {key: new_value}):
-                return JsonResponse({"status": "success", "message": "Secret updated"})
-            else:
-                return JsonResponse({"status": "error", "message": "Failed to write secret"}, status=400)
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=403)
-    
-     # GET - Load all secrets WITH their current values
-    secrets_with_values = []
-    for secret_id, secret_config in SECRETS.items():
-        path = secret_config["path"]
+        return _handle_secret_update(request)
 
-        if openbao.is_locked_path(path):
-            continue
-        if not openbao.is_editable_path(path):
-            continue
+    sections = build_sections_payload(openbao, SECTION_CONFIG)
 
-        secret_data = openbao.get_secret(path)
-        current_value = ""
-        if secret_data:
-            current_value = secret_data.get(secret_config["key"], "")
-
-        secrets_with_values.append({
-            "id": secret_id,
-            "label": secret_config["label"],
-            "value": current_value,
-        })
-    
+    # Context sent to Django template.
     context = {
         "csrf_token": get_token(request),
-        "secrets": secrets_with_values
+        "sections": sections,
+        "admin_panel_data": {
+            "sections": sections,
+        },
     }
-    
+
     return render(request, "admin_panel/admin_panel.html", context)
 
 def placeholder(request):
-    return render(request, "admin_panel/admin_panel.html")
-
+    context = {
+        "csrf_token": get_token(request),
+        "sections": [],
+        "admin_panel_data": {"sections": []},
+    }
+    return render(request, "admin_panel/admin_panel.html", context)    

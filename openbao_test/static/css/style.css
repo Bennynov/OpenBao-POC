@@ -1,58 +1,554 @@
-body { 
-    font-family: system-ui, sans-serif;
-    margin: 20px;
+/*
+    Design tokens:
+    Centralized colors, shadows, and surface values used throughout the page.
+*/
+:root {
+    --bg-main: #eef3fb;
+    --bg-secondary: #f8faff;
+    --surface: #ffffff;
+    --surface-soft: #f5f8ff;
+    --text: #15213a;
+    --muted: #5b6782;
+    --border: #d7e0f1;
+    --accent: #2f6fed;
+    --accent-soft: #e9f1ff;
+    --success-bg: #e8f7ef;
+    --success-text: #186844;
+    --error-bg: #ffeef0;
+    --error-text: #a12d3d;
+    --shadow-card: 0 12px 30px rgba(25, 43, 84, 0.12);
+    --shadow-overlay: 0 32px 80px rgba(13, 24, 50, 0.3);
 }
 
-.container { 
-    max-width: 600px;
-}
-
-.secret-block {
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    background: #fafafa;
-}
-
-.secret-block h2 {
-    margin-top: 0;
-    font-size: 1.2em;
-    color: #333;
-}
-
-input[type="text"], textarea { 
-    width: 100%;
-    padding: 8px;
+/* Global box model reset for predictable sizing */
+* {
     box-sizing: border-box;
-    font-family: monospace;
 }
 
-button { 
-    padding: 8px 16px;
-    background: #007bff;
-    color: white;
-    border: none;
+/*
+    Page background and typography.
+    overlay-open prevents body scroll while floating workspace is open.
+*/
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 32px;
+    font-family: Inter, "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at top left, #f3f7ff, var(--bg-main) 35%, var(--bg-secondary));
+}
+
+body.overlay-open {
+    overflow: hidden;
+}
+
+/* Main layout wrapper for title + selector grid */
+.container {
+    max-width: 1240px;
+    margin: 0 auto;
+}
+
+/* Page heading */
+h1 {
+    margin: 0 0 24px;
+    font-size: clamp(1.8rem, 2.5vw, 2.35rem);
+    letter-spacing: -0.02em;
+}
+
+/* Header row for page title + logout button */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.page-title {
+    margin: 0;
+}
+
+.logout-inline-form {
+    margin: 0;
+}
+
+/*
+    Section selector cards row:
+    responsive auto-fit grid for Docs / Drive / Meet / Message / Extra.
+*/
+.section-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 18px;
+}
+
+/* Individual section card */
+.section-card {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: linear-gradient(165deg, #ffffff, #f4f8ff);
+    color: inherit;
+    min-height: 158px;
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    text-align: left;
     cursor: pointer;
-    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
 }
 
-button:hover { 
-    background: #0056b3;
+/* Hover state for better interaction feedback */
+.section-card:hover {
+    transform: translateY(-2px);
+    border-color: #b8c8ea;
+    box-shadow: 0 18px 38px rgba(20, 42, 90, 0.17);
 }
 
-.message { 
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 4px;
+/* Keyboard accessibility focus ring */
+.section-card:focus-visible {
+    outline: 3px solid rgba(47, 111, 237, 0.24);
+    outline-offset: 2px;
 }
 
-.success { 
-    background: #d4edda;
-    color: #155724;
+/* Visual state for currently selected section */
+.section-card.is-active {
+    border-color: var(--accent);
+    background: linear-gradient(170deg, #ffffff, #eaf2ff);
+    box-shadow: 0 20px 44px rgba(47, 111, 237, 0.24);
 }
 
-.error { 
-    background: #f8d7da;
-    color: #721c24;
+/* Small icon container inside each section card */
+.section-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid #d2dcf3;
+    background: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.section-card-title {
+    font-size: 1.08rem;
+    font-weight: 650;
+}
+
+.section-card-helper {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.section-card-count {
+    margin-top: auto;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #345088;
+}
+
+/*
+    Single detached overlay root.
+    Hidden by default; .is-open makes it visible.
+*/
+.workspace-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 34px;
+}
+
+.workspace-overlay.is-open {
+    display: flex;
+}
+
+/* Dimmed/blurred backdrop behind workspace panel */
+.workspace-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 24, 42, 0.4);
+    backdrop-filter: blur(7px);
+}
+
+/* Floating workspace panel (detached editing surface) */
+.workspace-panel {
+    position: relative;
+    width: min(1160px, calc(100vw - 68px));
+    height: min(82vh, 790px);
+    border-radius: 22px;
+    border: 1px solid #cfdaef;
+    background: linear-gradient(180deg, #ffffff, #f8faff 46%, #f7f9fd);
+    box-shadow: var(--shadow-overlay);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(14px) scale(0.985);
+    opacity: 0;
+    transition: transform 170ms ease, opacity 170ms ease;
+}
+
+/* Open animation state */
+.workspace-overlay.is-open .workspace-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Header row inside workspace panel */
+.workspace-header {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #d9e2f3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(180deg, #ffffff, #f3f7ff);
+}
+
+.workspace-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Active section icon in header */
+.workspace-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid #cad7ef;
+    background: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+}
+
+.workspace-heading h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.workspace-heading p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* Close button (top-right of workspace) */
+.workspace-close {
+    appearance: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid #d1dcf0;
+    background: #ffffff;
+    color: #405074;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.workspace-close:hover {
+    background: #f2f6ff;
+    border-color: #b5c8ea;
+}
+
+/*
+    Two-column workspace body:
+    - left secret list pane
+    - right editor pane
+*/
+.workspace-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(290px, 340px) minmax(0, 1fr);
+    gap: 20px;
+    padding: 20px 22px 22px;
+    min-height: 0;
+}
+
+/* Shared panel surfaces */
+.secret-menu-pane,
+.secret-editor-pane {
+    border: 1px solid #d8e2f3;
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgba(22, 40, 84, 0.08);
+    padding: 16px;
+    min-height: 0;
+}
+
+.secret-menu-pane {
+    display: flex;
+    flex-direction: column;
+}
+
+.secret-menu-pane h3,
+.secret-editor-pane h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.secret-menu-pane p,
+.secret-editor-pane p {
+    margin: 6px 0 12px;
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+/* Scrollable list of secrets for active section */
+.secret-menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: auto;
+    padding-right: 2px;
+}
+
+/* Secret row button in directory pane */
+.secret-menu-item {
+    appearance: none;
+    border: 1px solid #d2deef;
+    background: linear-gradient(180deg, #ffffff, #f7faff);
+    border-radius: 12px;
+    text-align: left;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    transition: transform 130ms ease, border-color 130ms ease;
+}
+
+.secret-menu-item:hover {
+    transform: translateY(-1px);
+    border-color: #b8ccea;
+}
+
+/* Selected secret row */
+.secret-menu-item.is-active {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, #eff4ff, #e8f0ff);
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.secret-menu-label {
+    font-weight: 640;
+    font-size: 0.94rem;
+}
+
+/* Empty states for menu/editor when section has no secrets */
+.secret-menu-empty,
+.secret-editor-empty {
+    border: 1px dashed #cad8f0;
+    background: #f8fbff;
+    border-radius: 12px;
+    color: #5a6d8e;
+    font-size: 0.88rem;
+    padding: 14px;
+}
+
+/* Right editor pane uses its own scroll */
+.secret-editor-pane {
+    overflow: auto;
+}
+
+/* Single active form card used for selected secret */
+.secret-editor-card {
+    border: 1px solid #d4deef;
+    border-radius: 15px;
+    background: linear-gradient(180deg, #ffffff, #f9fbff);
+    box-shadow: 0 8px 22px rgba(19, 37, 79, 0.08);
+    padding: 16px;
+}
+
+/* Utility class to hide/show form and empty states */
+.is-hidden {
+    display: none;
+}
+
+/* Read-only metadata blocks above textarea */
+.secret-meta {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.secret-meta-label {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #607194;
+    font-weight: 700;
+}
+
+.secret-meta-label:not(:first-child) {
+    margin-top: 8px;
+}
+
+.secret-meta-value {
+    font-size: 1rem;
+    font-weight: 620;
+}
+
+.secret-editor-card label {
+    display: inline-block;
+    margin: 6px 0 8px;
+    font-weight: 620;
+    font-size: 0.88rem;
+}
+
+.secret-editor-card .editor-field-label {
+    display: inline-block;
+    margin: 6px 0 8px;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #607194;
+    font-weight: 700;
+}
+
+/*
+    Editable value input area:
+    - resize: none prevents manual drag resizing
+    - overflow: auto keeps scrolling inside textarea
+*/
+.editor-textarea {
+    width: 100%;
+    min-height: 150px;
+    max-height: 200px;
+    border-radius: 12px;
+    border: 1px solid #ccd8ef;
+    padding: 12px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: #182843;
+    background: #ffffff;
+    resize: none;
+    overflow: auto;
+    transition: border-color 130ms ease, box-shadow 130ms ease;
+}
+
+.editor-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.17);
+}
+
+/* Save button + inline status row */
+.editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.save-button {
+    appearance: none;
+    border: 1px solid #2e66d4;
+    background: linear-gradient(180deg, #3f7bf4, #2f6fed);
+    color: #ffffff;
+    font-weight: 620;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: transform 130ms ease, box-shadow 130ms ease;
+}
+
+.save-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(47, 111, 237, 0.28);
+}
+
+.logout-button {
+    appearance: none;
+    border: 1px solid #2e66d4;
+    background: linear-gradient(180deg, #3f7bf4, #2f6fed);
+    color: #ffffff;
+    font-weight: 620;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: transform 130ms ease, box-shadow 130ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.logout-button:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, #ff3b30, #d92d20);
+    border-color: #c81e1e;
+    box-shadow: 0 10px 22px rgba(217, 45, 32, 0.3);
+}
+
+/* Inline feedback message area for save result */
+.message {
+    min-height: 30px;
+    border-radius: 9px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    color: #4e6185;
+    background: transparent;
+}
+
+.message.success {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.message.error {
+    background: var(--error-bg);
+    color: var(--error-text);
+}
+
+/* Tablet and below: collapse to single-column workspace */
+@media (max-width: 980px) {
+    body {
+        padding: 22px;
+    }
+
+    .workspace-overlay {
+        padding: 16px;
+    }
+
+    .workspace-panel {
+        width: min(1120px, calc(100vw - 32px));
+        height: min(88vh, 860px);
+    }
+
+    .workspace-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile: overlay fills most of viewport like app sheet */
+@media (max-width: 640px) {
+    body {
+        padding: 14px;
+    }
+
+    .workspace-overlay {
+        padding: 10px;
+    }
+
+    .workspace-panel {
+        width: calc(100vw - 20px);
+        height: calc(100vh - 20px);
+        border-radius: 16px;
+    }
+
+    .workspace-header {
+        padding: 16px;
+    }
+
+    .workspace-content {
+        padding: 14px;
+        gap: 14px;
+    }
 }

@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = get_secret('locked/db_sk')
+SECRET_KEY = os.getenv('db_sk')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
@@ -43,7 +43,37 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "openbao_test",
+    "mozilla_django_oidc",
 ]
+
+# Authentication & OIDC
+AUTHENTICATION_BACKENDS = [
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+LOGIN_URL = "oidc_authentication_init"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+# OIDC Provider (MOSA Cloud)
+OIDC_RP_CLIENT_ID = os.getenv("OIDC_RP_CLIENT_ID")
+OIDC_RP_CLIENT_SECRET = os.getenv("OIDC_RP_CLIENT_SECRET")
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/authorize"
+OIDC_OP_TOKEN_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/token"
+OIDC_OP_USER_ENDPOINT = "https://identity.mosacloud.eu/oidc/v1/userinfo"
+OIDC_OP_JWKS_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/keys"
+OIDC_OP_END_SESSION_ENDPOINT = "https://identity.mosacloud.eu/oidc/v1/end_session"
+OIDC_STORE_ID_TOKEN = True
+OIDC_STORE_ACCESS_TOKEN = True
+OIDC_OP_REVOCATION_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/revoke"
+OIDC_OP_LOGOUT_URL_METHOD = "openbao_test.logout.build_op_logout_url"
+OIDC_RP_SCOPES = "openid email profile urn:zitadel:iam:org:project:roles"
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_USE_PKCE = True
+OIDC_REDIRECT_REQUIRE_HTTPS = os.getenv("OIDC_REDIRECT_REQUIRE_HTTPS", "True") == "True"
+ALLOW_LOGOUT_GET_METHOD = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -2,57 +2,93 @@
 <html>
 <head>
     <title>Secret Updater</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
+    <!-- Main page wrapper with dynamic section cards -->
     <div class="container">
-        <h1>Secret Updater</h1>
-        
-        {% for secret in secrets %}
-        <div class="secret-block">
-            <h2>{{ secret.label }}</h2>
-            <form class="secretForm" data-id="{{ secret.id }}">
+        <div class="page-header">
+            <h1 class="page-title">Secret Updater</h1>
+            <form action="{% url 'oidc_logout' %}" method="post" class="logout-inline-form">
                 {% csrf_token %}
-                <label>Value:</label>
-                <textarea class="secret-value" name="value" rows="4" style="resize: none;">{{ secret.value }}</textarea>
-                <button type="submit">Save</button>
-                <div class="message"></div>
+                <button type="submit" class="logout-button">Sign out</button>
             </form>
         </div>
-        {% endfor %}
-        
+
+        <section class="section-card-grid" aria-label="Secret sections">
+            {% for section in sections %}
+                <button type="button" class="section-card" data-section-id="{{ section.id }}">
+                    <span class="section-card-icon">{{ section.icon }}</span>
+                    <span class="section-card-title">{{ section.title }}</span>
+                    <span class="section-card-helper">{{ section.card_helper }}</span>
+                    <span class="section-card-count">{{ section.secret_count }} editable secrets</span>
+                </button>
+            {% empty %}
+                <div class="secret-menu-empty">No app sections configured.</div>
+            {% endfor %}
+        </section>
     </div>
 
-    <script>
-        document.querySelectorAll('.secretForm').forEach(form => {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const id = form.getAttribute('data-id');
-                const value = form.querySelector('.secret-value').value;
-                const token = form.querySelector('[name=csrfmiddlewaretoken]').value;
-                const messageDiv = form.querySelector('.message');
-                
-                try {
-                    const response = await fetch('', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': token,
-                        },
-                        body: JSON.stringify({ id, value })
-                    });
-                    
-                    const data = await response.json();
-                    messageDiv.textContent = data.message;
-                    messageDiv.className = 'message ' + (response.ok ? 'success' : 'error');
-                } catch (err) {
-                    messageDiv.textContent = 'Error: ' + err;
-                    messageDiv.className = 'message error';
-                }
-            });
-        });
-    </script>
+    <!-- Single reusable overlay/editor workspace -->
+    <div id="workspaceOverlay" class="workspace-overlay" aria-hidden="true">
+        <div class="workspace-backdrop" data-overlay-close="true"></div>
+
+        <section class="workspace-panel" role="dialog" aria-modal="true" aria-labelledby="workspaceTitle">
+            <header class="workspace-header">
+                <div class="workspace-heading">
+                    <span id="workspaceIcon" class="workspace-icon">📄</span>
+                    <div>
+                        <h2 id="workspaceTitle">Docs Secrets</h2>
+                        <p id="workspaceSubtitle">Select a secret and update only its value.</p>
+                    </div>
+                </div>
+
+                <button id="overlayCloseButton" class="workspace-close" type="button" aria-label="Close workspace">×</button>
+            </header>
+
+            <div class="workspace-content">
+                <aside class="secret-menu-pane">
+                    <h3>Secret Directory</h3>
+                    <p>Select a secret name to edit its value.</p>
+                    <div id="secretMenuList" class="secret-menu-list"></div>
+                </aside>
+
+                <div class="secret-editor-pane">
+                    <h3>Value Editor</h3>
+                    <p>Update secret values with inline save feedback.</p>
+
+                    <div id="secretEditorEmpty" class="secret-editor-empty">
+                        No editable secrets in this section.
+                    </div>
+
+                    <form id="secretEditorForm" class="secret-editor-card is-hidden">
+                        {% csrf_token %}
+                        <input id="activeSectionId" type="hidden" name="section_id" value="">
+                        <input id="activeSecretId" type="hidden" name="secret_id" value="">
+
+                        <div class="secret-meta">
+                            <span class="secret-meta-label">Secret Name</span>
+                            <span id="activeSecretLabel" class="secret-meta-value"></span>
+                            <span class="secret-meta-label">Description</span>
+                            <span id="activeSecretDescription" class="secret-meta-value"></span>
+                        </div>
+
+                        <label for="activeSecretValue" class="editor-field-label">Secret Value</label>
+                        <textarea id="activeSecretValue" class="secret-value editor-textarea" name="value" rows="6" placeholder="Current value"></textarea>
+
+                        <div class="editor-actions">
+                            <button type="submit" class="save-button">Save Value</button>
+                            <div id="activeSecretMessage" class="message" aria-live="polite"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    {{ admin_panel_data|json_script:"adminPanelData" }}
+    <script src="{% static 'js/admin_panel.js' %}"></script>
 </body>
 </html>
