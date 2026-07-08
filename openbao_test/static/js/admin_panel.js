@@ -75,6 +75,33 @@
         secretEditorForm.classList.toggle("is-hidden", show);
     }
 
+    function triggerLogout() {
+        const logoutForm = document.querySelector(".logout-inline-form");
+        if (logoutForm) {
+            logoutForm.requestSubmit();
+        }
+    }
+
+    function checkIntrospection(onSuccess) {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+        const token = csrfInput ? csrfInput.value : "";
+        fetch("/introspect/", {
+            method: "POST",
+            headers: { "X-CSRFToken": token },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === "logout") {
+                    triggerLogout();
+                } else {
+                    onSuccess();
+                }
+            })
+            .catch(() => {
+                triggerLogout();
+            });
+    }
+
     function setActiveSecret(secret) {
         activeSecret = secret;
         activeSecretBySection[activeSectionId] = secret.id;
@@ -86,9 +113,13 @@
         activeSecretLabel.textContent = secret.label;
         activeSecretDescription.textContent = secret.description || "";
         activeSecretValue.value = "";
-        activeSecretValue.placeholder = `Current: ${secret.value || ""}`;
+        activeSecretValue.placeholder = "Verifying access...";
         activeSecretMessage.textContent = "";
         activeSecretMessage.className = "message";
+
+        checkIntrospection(() => {
+            activeSecretValue.placeholder = `Current: ${secret.value || ""}`;
+        });
     }
 
     function renderSecretMenu(sectionSecrets) {
@@ -240,6 +271,11 @@
                 if (textResponse && textResponse.trim()) {
                     data = { message: textResponse.trim() };
                 }
+            }
+
+            if (data.status === "logout") {
+                triggerLogout();
+                return;
             }
 
             activeSecretMessage.textContent = data.message;

@@ -17,6 +17,13 @@ SECTION_CONFIG = [
                 "label": "test secret message test",
                 "description": "Used by the docs service for API authentication.",
             },
+            {
+                "id": "secret_2",
+                "path": "editable/docs/test_2",
+                "key": "test 2",
+                "label": "this is for an ai api",
+                "description": "Used by the docs application features for AI-assistence.",
+            },
         ],
     },
     {
@@ -34,6 +41,13 @@ SECTION_CONFIG = [
                 "key": "test 1",
                 "label": "test secret message",
                 "description": "an api token for the ai that sorts all files automatically",
+            },
+            {
+                "id": "secret_2",
+                "path": "editable/drive/test_2",
+                "key": "test 2",
+                "label": "this is for an ai api",
+                "description": "Used by the drive application features for AI-assistence.",
             },
         ],
     },
@@ -53,6 +67,13 @@ SECTION_CONFIG = [
                 "label": "test secret message",
                 "description": "Used by meet integrations for session API calls.",
             },
+            {
+                "id": "secret_2",
+                "path": "editable/meet/test_2",
+                "key": "test 2",
+                "label": "this is for an ai api",
+                "description": "Used by the meet application features for AI-assistence.",
+            },
         ],
     },
     {
@@ -71,6 +92,13 @@ SECTION_CONFIG = [
                 "label": "test secret message",
                 "description": "Used by messaging integrations for channel access.",
             },
+            {
+                "id": "secret_2",
+                "path": "editable/message/test_2",
+                "key": "test 2",
+                "label": "this is for an ai api",
+                "description": "Used by the message application features for AI-assistence.",
+            },
         ],
     },
     {
@@ -85,7 +113,14 @@ SECTION_CONFIG = [
             {
                 "id": "secret_1",
                 "path": "editable/calendar/test",
-                "key": "test",
+                "key": "test 2",
+                "label": "this is for an ai api",
+                "description": "Used by calendar features for AI-assisted scheduling.",
+            },
+            {
+                "id": "secret_2",
+                "path": "editable/calendar/test_2",
+                "key": "test 2",
                 "label": "this is for an ai api",
                 "description": "Used by calendar features for AI-assisted scheduling.",
             },

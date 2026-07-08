@@ -6,6 +6,7 @@ from test_app.openbao_client import openbao
 from .admin_panel_sections import SECTION_CONFIG
 from .admin_panel_service import SECRET_INDEX, SECTION_ROLES, build_sections_payload
 from .authz import get_request_roles, is_authorized
+from .introspection import roles_changed_or_failed
 from django.contrib.auth.decorators import login_required
 from .admin_panel_update_service import (
     SecretUpdateError,
@@ -25,11 +26,23 @@ def _handle_secret_update(request, user_roles):
         if not is_authorized(user_roles, SECTION_ROLES.get(section_id, set())):
             raise SecretUpdateError("You do not have permission to update this section.", 403)
 
+        if roles_changed_or_failed(request):
+            return JsonResponse({"status": "logout"}, status=401)
+
         update_secret_value(openbao, SECRET_INDEX, section_id, secret_id, new_value)
     except SecretUpdateError as exc:
         return _error_response(exc.message, exc.status_code)
 
     return JsonResponse({"status": "success", "message": "Secret updated"})
+
+
+@login_required
+@require_http_methods(["POST"])
+def introspect_check(request):
+    if roles_changed_or_failed(request):
+        return JsonResponse({"status": "logout"}, status=401)
+    return JsonResponse({"status": "ok"})
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
