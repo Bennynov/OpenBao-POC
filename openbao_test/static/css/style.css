@@ -74,11 +74,12 @@ h1 {
 
 /*
     Section selector cards row:
-    responsive auto-fit grid for Docs / Drive / Meet / Message / Extra.
+    fixed 5-column grid matching the Figma layout (collapses to a single
+    full-width auto-fill column on phones, see the 479px media query below).
 */
 .section-card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(5, minmax(210px, 1fr));
     gap: 18px;
 }
 
@@ -88,7 +89,7 @@ h1 {
     border: 1px solid var(--border);
     background: linear-gradient(165deg, #ffffff, #f4f8ff);
     color: inherit;
-    min-height: 158px;
+    min-height: 190px;
     padding: 20px;
     border-radius: 18px;
     box-shadow: var(--shadow-card);
@@ -524,6 +525,17 @@ h1 {
 
     .workspace-content {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Phone: only one section card fits per row, keep its original shorter height */
+@media (max-width: 479px) {
+    .section-card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    }
+
+    .section-card {
+        min-height: 158px;
     }
 }
 

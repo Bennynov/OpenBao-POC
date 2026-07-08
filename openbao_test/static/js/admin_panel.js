@@ -260,4 +260,17 @@
             }
         }
     });
+
+    activeSecretValue.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") {
+            return;
+        }
+
+        if (event.shiftKey) {
+            return;
+        }
+
+        event.preventDefault();
+        secretEditorForm.requestSubmit();
+    });
 })();

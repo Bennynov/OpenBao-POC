@@ -8,6 +8,7 @@ SECTION_CONFIG = [
         "card_helper": "Document service credentials",
         "workspace_title": "Docs Secrets",
         "workspace_subtitle": "Manage document service secrets in a focused workspace.",
+        "required_roles": {"docs_admin"},
         "secrets": [
             {
                 "id": "secret_1",
@@ -25,6 +26,7 @@ SECTION_CONFIG = [
         "card_helper": "Storage and file workflow credentials",
         "workspace_title": "Drive Secrets",
         "workspace_subtitle": "Manage storage and file workflow secrets in one place.",
+        "required_roles": {"drive_admin"},
         "secrets": [
             {
                 "id": "secret_1",
@@ -42,6 +44,7 @@ SECTION_CONFIG = [
         "card_helper": "Meeting platform integrations",
         "workspace_title": "Meet Secrets",
         "workspace_subtitle": "Manage meeting service secrets with clear section context.",
+        "required_roles": {"meet_admin"},
         "secrets": [
             {
                 "id": "secret_1",
@@ -59,6 +62,7 @@ SECTION_CONFIG = [
         "card_helper": "Messaging channel service keys",
         "workspace_title": "Message Secrets",
         "workspace_subtitle": "Manage messaging service credentials and tokens.",
+        "required_roles": {"message_admin"},
         "secrets": [
             {
                 "id": "secret_1",
@@ -76,10 +80,11 @@ SECTION_CONFIG = [
         "card_helper": "Calendar to plan and see scheduled meetings",
         "workspace_title": "Calendar Secrets",
         "workspace_subtitle": "Manage calendar service credentials and tokens.",
+        "required_roles": {"calendar_admin"},
         "secrets": [
             {
                 "id": "secret_1",
-                "path": "editable/calander/test",
+                "path": "editable/calendar/test",
                 "key": "test",
                 "label": "this is for an ai api",
                 "description": "Used by calendar features for AI-assisted scheduling.",
@@ -93,6 +98,7 @@ SECTION_CONFIG = [
         "card_helper": "Root-level editable secrets only",
         "workspace_title": "Extra Secrets",
         "workspace_subtitle": "Manage root-level editable secrets under editable/.",
+        "required_roles": {"extra_admin"},
         "secrets": [
             {
                 "id": "secret_1",
