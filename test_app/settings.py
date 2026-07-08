@@ -60,20 +60,20 @@ LOGOUT_REDIRECT_URL = "/"
 OIDC_RP_CLIENT_ID = os.getenv("OIDC_RP_CLIENT_ID")
 OIDC_RP_CLIENT_SECRET = os.getenv("OIDC_RP_CLIENT_SECRET")
 
+OIDC_STORE_ACCESS_TOKEN = True
 OIDC_OP_AUTHORIZATION_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/authorize"
 OIDC_OP_TOKEN_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/token"
 OIDC_OP_USER_ENDPOINT = "https://identity.mosacloud.eu/oidc/v1/userinfo"
 OIDC_OP_JWKS_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/keys"
 OIDC_OP_END_SESSION_ENDPOINT = "https://identity.mosacloud.eu/oidc/v1/end_session"
 OIDC_STORE_ID_TOKEN = True
-OIDC_STORE_ACCESS_TOKEN = True
 OIDC_OP_REVOCATION_ENDPOINT = "https://identity.mosacloud.eu/oauth/v2/revoke"
-OIDC_OP_LOGOUT_URL_METHOD = "openbao_test.logout.build_op_logout_url"
-OIDC_RP_SCOPES = "openid email profile urn:zitadel:iam:org:project:roles"
+OIDC_OP_LOGOUT_URL_METHOD = "openbao_test.logout.build_logout_url"
+OIDC_RP_SCOPES = "openid email profile"
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_USE_PKCE = True
 OIDC_REDIRECT_REQUIRE_HTTPS = os.getenv("OIDC_REDIRECT_REQUIRE_HTTPS", "True") == "True"
-ALLOW_LOGOUT_GET_METHOD = True
+ALLOW_LOGOUT_GET_METHOD = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
