@@ -1,13 +1,18 @@
-from django.test import SimpleTestCase
-from unittest.mock import ANY
-from unittest.mock import patch
+from django.contrib.auth.models import User
+from django.test import TestCase
+from unittest.mock import ANY, patch
 
 from openbao_test.admin_panel_update_service import SecretUpdateError
 
 
-class SecretUpdaterViewTests(SimpleTestCase):
+class SecretUpdaterViewTests(TestCase):
+    def setUp(self):
+        user = User.objects.create_user(username="testuser", password="x")
+        self.client.force_login(user)
+
+    @patch("openbao_test.views.get_request_roles", return_value=set())
     @patch("openbao_test.views.build_sections_payload")
-    def test_get_secret(self, mock_build_sections_payload):
+    def test_get_secret(self, mock_build_sections_payload, mock_get_roles):
         mock_build_sections_payload.return_value = [
             {
                 "id": "section_1",
@@ -30,9 +35,11 @@ class SecretUpdaterViewTests(SimpleTestCase):
         for section in response.context["sections"]:
             self.assertEqual(section["secret_count"], len(section["secrets"]))
 
+    @patch("openbao_test.views.roles_changed_or_failed", return_value=False)
+    @patch("openbao_test.views.is_authorized", return_value=True)
     @patch("openbao_test.views.update_secret_value")
     @patch("openbao_test.views.parse_secret_update_request")
-    def test_post_valid_update(self, mock_parse, mock_update):
+    def test_post_valid_update(self, mock_parse, mock_update, mock_authz, mock_introspect):
         post_data = {
             "section_id": "section_1",
             "secret_id": "secret_1",
@@ -63,3 +70,24 @@ class SecretUpdaterViewTests(SimpleTestCase):
         self.assertEqual(response.json(), {"status": "error", "message": "Missing section_id or secret_id"})
         mock_parse.assert_called_once()
         mock_update.assert_not_called()
+
+    @patch("openbao_test.views.is_authorized", return_value=False)
+    @patch("openbao_test.views.parse_secret_update_request")
+    def test_post_unauthorized_section(self, mock_parse, mock_authz):
+        mock_parse.return_value = ("section_1", "secret_1", "newvalue")
+
+        response = self.client.post("/", data={"section_id": "section_1", "secret_id": "secret_1", "value": "newvalue"})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["status"], "error")
+
+    @patch("openbao_test.views.roles_changed_or_failed", return_value=True)
+    @patch("openbao_test.views.is_authorized", return_value=True)
+    @patch("openbao_test.views.parse_secret_update_request")
+    def test_post_roles_changed_triggers_logout(self, mock_parse, mock_authz, mock_introspect):
+        mock_parse.return_value = ("section_1", "secret_1", "newvalue")
+
+        response = self.client.post("/", data={"section_id": "section_1", "secret_id": "secret_1", "value": "newvalue"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {"status": "logout"})
