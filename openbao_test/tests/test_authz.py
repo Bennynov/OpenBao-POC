@@ -1,8 +1,9 @@
+from django.conf import settings
 from django.test import RequestFactory, SimpleTestCase
 
 from openbao_test.authz import extract_roles_from_claims, get_request_roles, is_authorized
 
-PRIMARY_KEY = "urn:zitadel:iam:org:project:374057818900136573:roles"
+PRIMARY_KEY = f"urn:zitadel:iam:org:project:{settings.OIDC_PROJECT_ID}:roles"
 FALLBACK_KEY = "urn:zitadel:iam:org:project:roles"
 
 

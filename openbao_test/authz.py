@@ -5,9 +5,10 @@ provides small helpers for authorization checks.
 """
 from typing import Any, Dict, Iterable, Set
 import jwt
+from django.conf import settings
 
 ROLE_CLAIM_KEYS = (
-    "urn:zitadel:iam:org:project:374057818900136573:roles",
+    f"urn:zitadel:iam:org:project:{settings.OIDC_PROJECT_ID}:roles",
     "urn:zitadel:iam:org:project:roles",
 )
 

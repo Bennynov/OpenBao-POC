@@ -56,21 +56,23 @@ LOGIN_URL = "oidc_authentication_init"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# OIDC Provider (MOSA Cloud)
+# OIDC Provider
 OIDC_RP_CLIENT_ID = os.getenv("OIDC_RP_CLIENT_ID")
 OIDC_RP_CLIENT_SECRET = os.getenv("OIDC_RP_CLIENT_SECRET")
 
 OIDC_STORE_ACCESS_TOKEN = True
-OIDC_OP_AUTHORIZATION_ENDPOINT = "https://identity.dev.mosacloud.eu/oauth/v2/authorize"
-OIDC_OP_TOKEN_ENDPOINT = "https://identity.dev.mosacloud.eu/oauth/v2/token"
-OIDC_OP_USER_ENDPOINT = "https://identity.dev.mosacloud.eu/oidc/v1/userinfo"
-OIDC_OP_JWKS_ENDPOINT = "https://identity.dev.mosacloud.eu/oauth/v2/keys"
-OIDC_OP_END_SESSION_ENDPOINT = "https://identity.dev.mosacloud.eu/oidc/v1/end_session"
-OIDC_OP_INTROSPECTION_ENDPOINT = "https://identity.dev.mosacloud.eu/oauth/v2/introspect"
+OIDC_OP_BASE_URL = os.getenv("OIDC_OP_BASE_URL")
+OIDC_OP_AUTHORIZATION_ENDPOINT = f"{OIDC_OP_BASE_URL}/oauth/v2/authorize"
+OIDC_OP_TOKEN_ENDPOINT = f"{OIDC_OP_BASE_URL}/oauth/v2/token"
+OIDC_OP_USER_ENDPOINT = f"{OIDC_OP_BASE_URL}/oidc/v1/userinfo"
+OIDC_OP_JWKS_ENDPOINT = f"{OIDC_OP_BASE_URL}/oauth/v2/keys"
+OIDC_OP_END_SESSION_ENDPOINT = f"{OIDC_OP_BASE_URL}/oidc/v1/end_session"
+OIDC_OP_INTROSPECTION_ENDPOINT = f"{OIDC_OP_BASE_URL}/oauth/v2/introspect"
 OIDC_STORE_ID_TOKEN = True
-OIDC_OP_REVOCATION_ENDPOINT = "https://identity.dev.mosacloud.eu/oauth/v2/revoke"
+OIDC_OP_REVOCATION_ENDPOINT = f"{OIDC_OP_BASE_URL}/oauth/v2/revoke"
 OIDC_OP_LOGOUT_URL_METHOD = "openbao_test.logout.build_logout_url"
-OIDC_RP_SCOPES = "openid email profile urn:zitadel:iam:org:project:id:374057818900136573:aud urn:zitadel:iam:org:project:id:374057818900136573:roles"
+OIDC_PROJECT_ID = os.getenv("OIDC_PROJECT_ID")
+OIDC_RP_SCOPES = f"openid email profile urn:zitadel:iam:org:project:id:{OIDC_PROJECT_ID}:aud urn:zitadel:iam:org:project:id:{OIDC_PROJECT_ID}:roles"
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_USE_PKCE = True
 OIDC_REDIRECT_REQUIRE_HTTPS = os.getenv("OIDC_REDIRECT_REQUIRE_HTTPS", "True") == "True"

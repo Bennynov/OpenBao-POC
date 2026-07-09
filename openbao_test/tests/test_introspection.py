@@ -1,11 +1,12 @@
 import requests
 
+from django.conf import settings
 from django.test import RequestFactory, SimpleTestCase
 from unittest.mock import MagicMock, patch
 
 from openbao_test.introspection import roles_changed_or_failed
 
-PRIMARY_KEY = "urn:zitadel:iam:org:project:374057818900136573:roles"
+PRIMARY_KEY = f"urn:zitadel:iam:org:project:{settings.OIDC_PROJECT_ID}:roles"
 
 
 class RolesChangedOrFailedTests(SimpleTestCase):

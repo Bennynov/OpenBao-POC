@@ -26,6 +26,8 @@ Required:
 - `vault` = Mount point for KV v2 (example: `secret`)
 - `OIDC_RP_CLIENT_ID` = OIDC client id
 - `OIDC_RP_CLIENT_SECRET` = OIDC client secret
+- `OIDC_OP_BASE_URL` = Base URL of your OIDC provider
+- `OIDC_PROJECT_ID` = OIDC provider project/org id used in role claim scopes
 - `db_sk` = Django secret key
 - `DEBUG` = `True` or `False`
 - `ALLOWED_HOSTS` = Comma-separated list
@@ -45,6 +47,8 @@ export OPENBAO_TOKEN="your-token"
 export vault="secret"
 export OIDC_RP_CLIENT_ID="your-client-id"
 export OIDC_RP_CLIENT_SECRET="your-client-secret"
+export OIDC_OP_BASE_URL="https://your-idp"
+export OIDC_PROJECT_ID="your-project-id"
 export db_sk="your-django-secret"
 export DEBUG=True
 export ALLOWED_HOSTS="localhost,127.0.0.1"
