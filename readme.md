@@ -32,16 +32,21 @@ Required:
 - `DEBUG` = `True` or `False`
 - `ALLOWED_HOSTS` = Comma-separated list
 
+Optional:
+- `OIDC_REDIRECT_REQUIRE_HTTPS` = `True` or `False` (defaults to `True`; set to `False` when running locally over plain HTTP)
+
+All variables are listed in `.env.example`.
+
 ## Run Locally
 ```bash
 # 1) Create and activate a virtualenv
-python -m venv .venv
-source .venv/bin/activate
+python -m venv venv
+source venv/bin/activate
 
 # 2) Install dependencies
-pip install django python-dotenv hvac mozilla-django-oidc pyjwt
+pip install -r requirements.txt
 
-# 3) Export env vars (or use a .env file)
+# 3) Export env vars (or copy .env.example to .env and fill it in)
 export OPENBAO_ADDR="https://your-openbao"
 export OPENBAO_TOKEN="your-token"
 export vault="secret"
@@ -52,6 +57,7 @@ export OIDC_PROJECT_ID="your-project-id"
 export db_sk="your-django-secret"
 export DEBUG=True
 export ALLOWED_HOSTS="localhost,127.0.0.1"
+export OIDC_REDIRECT_REQUIRE_HTTPS=False  # optional, for local HTTP only
 
 # 4) Start the server
 python manage.py runserver
@@ -63,8 +69,11 @@ If `python` does not point to Python 3 on your system, use:
 python3 manage.py runserver
 ```
 ## Endpoints
-- `/` admin panel
-- `/debug/token/` returns decoded ID token claims
+- `/` admin panel (login required; GET renders the panel, POST saves a secret)
+- `/introspect/` POST only, login required; checks with the OIDC provider whether the user's roles are unchanged and returns `{"status": "ok"}` or `{"status": "logout"}`
+- `/legacy` placeholder page with no sections
+- `/oidc/` login, callback and logout routes from mozilla-django-oidc
+- `/admin/` Django admin
 
 ## Tests
 To run the test cases run
