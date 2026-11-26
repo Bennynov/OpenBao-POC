@@ -1,4 +1,14 @@
 /*
+    Admin panel styles.
+
+    Order: tokens, page layout, section cards, workspace overlay,
+    secret list, editor, buttons, messages, media queries.
+    Naming: kebab-case classes prefixed by component (section-card-*,
+    workspace-*, secret-menu-*); state classes use is-* (is-active,
+    is-open, is-hidden).
+*/
+
+/*
     Design tokens:
     Centralized colors, shadows, and surface values used throughout the page.
 */
@@ -64,6 +74,7 @@ h1 {
     margin-bottom: 22px;
 }
 
+/* Remove default margins so title and logout button line up in the header row */
 .page-title {
     margin: 0;
 }
@@ -134,6 +145,7 @@ h1 {
     font-size: 1.3rem;
 }
 
+/* Card text: title, helper line, and secret count pinned to the bottom */
 .section-card-title {
     font-size: 1.08rem;
     font-weight: 650;
@@ -211,6 +223,7 @@ h1 {
     background: linear-gradient(180deg, #ffffff, #f3f7ff);
 }
 
+/* Icon + title/subtitle group on the left of the header */
 .workspace-heading {
     display: flex;
     align-items: center;
@@ -286,11 +299,13 @@ h1 {
     min-height: 0;
 }
 
+/* Column layout so the secret list can scroll under the pane heading */
 .secret-menu-pane {
     display: flex;
     flex-direction: column;
 }
 
+/* Pane headings and helper text */
 .secret-menu-pane h3,
 .secret-editor-pane h3 {
     margin: 0;
@@ -340,6 +355,7 @@ h1 {
     box-shadow: inset 3px 0 0 var(--accent);
 }
 
+/* Secret name inside a list row */
 .secret-menu-label {
     font-weight: 640;
     font-size: 0.94rem;
@@ -382,6 +398,7 @@ h1 {
     margin-bottom: 10px;
 }
 
+/* Small uppercase labels ("Secret Name", "Description") with their values below */
 .secret-meta-label {
     font-size: 0.76rem;
     text-transform: uppercase;
@@ -399,6 +416,10 @@ h1 {
     font-weight: 620;
 }
 
+/*
+    Form labels in the editor. .editor-field-label overrides the generic
+    label style to match the uppercase meta labels above.
+*/
 .secret-editor-card label {
     display: inline-block;
     margin: 6px 0 8px;
@@ -452,6 +473,7 @@ h1 {
     margin-top: 14px;
 }
 
+/* Primary save action */
 .save-button {
     appearance: none;
     border: 1px solid #2e66d4;
@@ -469,6 +491,7 @@ h1 {
     box-shadow: 0 10px 22px rgba(47, 111, 237, 0.28);
 }
 
+/* Sign-out button: same look as save, turns red on hover to signal logout */
 .logout-button {
     appearance: none;
     border: 1px solid #2e66d4;
@@ -498,6 +521,7 @@ h1 {
     background: transparent;
 }
 
+/* Result states set by the JS after a save */
 .message.success {
     background: var(--success-bg);
     color: var(--success-text);

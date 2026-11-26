@@ -1,3 +1,4 @@
+"""URL routes for the admin panel app, included at the site root."""
 from django.urls import path
 from . import views
 

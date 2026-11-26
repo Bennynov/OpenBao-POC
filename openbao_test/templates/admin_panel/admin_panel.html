@@ -1,3 +1,13 @@
+{% comment %}
+    Admin panel page, rendered by the secret_updater and placeholder views.
+
+    Context:
+        sections: List of sections the user may access (renders the cards).
+        admin_panel_data: {"sections": [...]}, passed to admin_panel.js via json_script.
+        csrf_token: CSRF token used by the forms and the JS fetch calls.
+
+    Element ids are read by admin_panel.js, so keep them in sync when renaming.
+{% endcomment %}
 {% load static %}
 <html>
 <head>
@@ -7,16 +17,18 @@
 </head>
 
 <body>
-    <!-- Main page wrapper with dynamic section cards -->
+    {# Main page wrapper with dynamic section cards #}
     <div class="container">
         <div class="page-header">
             <h1 class="page-title">Secret Updater</h1>
+            {# Logout is a POST form so it carries the CSRF token #}
             <form action="{% url 'oidc_logout' %}" method="post" class="logout-inline-form">
                 {% csrf_token %}
                 <button type="submit" class="logout-button">Sign out</button>
             </form>
         </div>
 
+        {# One card per section the user may access; clicking opens the overlay #}
         <section class="section-card-grid" aria-label="Secret sections">
             {% for section in sections %}
                 <button type="button" class="section-card" data-section-id="{{ section.id }}">
@@ -31,8 +43,9 @@
         </section>
     </div>
 
-    <!-- Single reusable overlay/editor workspace -->
+    {# Single reusable overlay/editor workspace, filled by admin_panel.js #}
     <div id="workspaceOverlay" class="workspace-overlay" aria-hidden="true">
+        {# Clicking the backdrop closes the overlay (data-overlay-close) #}
         <div class="workspace-backdrop" data-overlay-close="true"></div>
 
         <section class="workspace-panel" role="dialog" aria-modal="true" aria-labelledby="workspaceTitle">
@@ -49,12 +62,14 @@
             </header>
 
             <div class="workspace-content">
+                {# Left pane: list of secrets in the open section #}
                 <aside class="secret-menu-pane">
                     <h3>Secret Directory</h3>
                     <p>Select a secret name to edit its value.</p>
                     <div id="secretMenuList" class="secret-menu-list"></div>
                 </aside>
 
+                {# Right pane: editor for the selected secret #}
                 <div class="secret-editor-pane">
                     <h3>Value Editor</h3>
                     <p>Update secret values with inline save feedback.</p>
@@ -65,6 +80,7 @@
 
                     <form id="secretEditorForm" class="secret-editor-card is-hidden">
                         {% csrf_token %}
+                        {# Hidden ids of the selected section and secret, set by the JS #}
                         <input id="activeSectionId" type="hidden" name="section_id" value="">
                         <input id="activeSecretId" type="hidden" name="secret_id" value="">
 
@@ -88,6 +104,7 @@
         </section>
     </div>
 
+    {# json_script escapes the data safely for the JS to read #}
     {{ admin_panel_data|json_script:"adminPanelData" }}
     <script src="{% static 'js/admin_panel.js' %}"></script>
 </body>

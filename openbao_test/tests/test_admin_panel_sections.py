@@ -1,3 +1,5 @@
+"""Tests for section config validation and payload building in admin_panel_service."""
+
 from django.test import SimpleTestCase
 
 from openbao_test.admin_panel_service import _validate_and_index_sections

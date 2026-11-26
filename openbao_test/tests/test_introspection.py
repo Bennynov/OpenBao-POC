@@ -1,3 +1,5 @@
+"""Tests for roles_changed_or_failed in introspection."""
+
 import requests
 
 from django.conf import settings
