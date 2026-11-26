@@ -115,6 +115,7 @@ def secret_updater(request):
 
     return render(request, "admin_panel/admin_panel.html", context)
 
+@login_required
 def placeholder(request):
     """Render the admin panel template with no sections.
 

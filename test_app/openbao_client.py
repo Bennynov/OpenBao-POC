@@ -1,7 +1,7 @@
 """OpenBao (KV v2) client shared by the whole project.
 
 Credentials and the mount point are read from environment variables
-(OPENBAO_ADDR, OPENBAO_TOKEN, vault). A single shared instance is created
+(OPENBAO_ADDR, OPENBAO_TOKEN, VAULT). A single shared instance is created
 at import time as `openbao`.
 """
 import os
@@ -26,7 +26,7 @@ class OpenBaoClient:
             token = os.getenv('OPENBAO_TOKEN')
         )
         # Set the mount point for all secret operations
-        self.mount_point = os.getenv('vault')
+        self.mount_point = os.getenv('VAULT')
 
     def get_secret(self, path):
         """Read the latest version of a secret.
