@@ -46,8 +46,8 @@ class OpenBaoClient:
             )
             # KV v2 structure: response['data']['data'] contains the actual secrets
             return secret['data']['data']
-        except Exception as e:
-            print(f"Error retrieving secret from OpenBao at {self.mount_point}/{path}: {e}")
+        except Exception as exc:
+            print(f"Error retrieving secret from OpenBao at {self.mount_point}/{path}: {exc}")
             return None
 
     def is_authenticated(self):
@@ -61,8 +61,8 @@ class OpenBaoClient:
             if auth_check:
                 print(f"✓ Successfully authenticated to OpenBao at {os.getenv('OPENBAO_ADDR')}")
             return auth_check
-        except Exception as e:
-            print(f"✗ Authentication check failed: {e}")
+        except Exception as exc:
+            print(f"✗ Authentication check failed: {exc}")
             return False
 
     def write_secret(self, path, secret_data):
@@ -82,8 +82,8 @@ class OpenBaoClient:
                 mount_point=self.mount_point
             )
             return True
-        except Exception as e:
-            print(f"Error writing secret to OpenBao at {self.mount_point}/{path}: {e}")
+        except Exception as exc:
+            print(f"Error writing secret to OpenBao at {self.mount_point}/{path}: {exc}")
             return False
 
     def is_editable_path(self, path: str) -> bool:
