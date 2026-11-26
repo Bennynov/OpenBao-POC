@@ -9,7 +9,20 @@ from .authz import get_request_roles, extract_roles_from_claims
 
 
 def roles_changed_or_failed(request) -> bool:
-    """True if the IdP can't confirm the user's roles are unchanged - caller should log out."""
+    """Return True if the IdP can't confirm the user's roles are unchanged.
+
+    Sends the session's access token to the IdP introspection endpoint and
+    compares the roles it reports with the roles in the session token. Any
+    failure counts as "changed" so the caller fails closed.
+
+    Args:
+        request: The current Django request with a session.
+
+    Returns:
+        True if the caller should log the user out: no token, network or
+        HTTP error, inactive token, or different roles. False only when the
+        IdP confirms the same roles.
+    """
     local_roles = get_request_roles(request)
     token = request.session.get("oidc_access_token")
     if not token:

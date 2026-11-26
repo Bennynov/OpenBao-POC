@@ -1,3 +1,5 @@
+"""Tests for request parsing and secret writes in admin_panel_update_service."""
+
 import json
 
 from django.test import RequestFactory

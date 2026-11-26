@@ -1,4 +1,27 @@
-"""Single source of truth for admin panel sections and secrets."""
+"""Single source of truth for admin panel sections and secrets.
+
+Adding a section or secret only requires changing SECTION_CONFIG. It is
+validated at startup by admin_panel_service.
+
+Section fields:
+    id: Unique section id, used in URLs and save requests.
+    title: Name shown on the section card.
+    icon: Emoji shown on the card and in the workspace header.
+    card_helper: Short description shown on the card.
+    workspace_title: Heading of the editor overlay.
+    workspace_subtitle: Subheading of the editor overlay.
+    required_roles: Set of roles allowed to see and edit the section.
+        Must not be empty. super_admin always has access.
+    secrets: List of secret entries (see below).
+
+Secret fields:
+    id: Secret id, unique within its section.
+    path: OpenBao path relative to the mount point. Must start with
+        "editable/" to be shown or written.
+    key: Key inside the OpenBao secret that holds the value.
+    label: Name shown in the secret list.
+    description: Explanation shown in the editor. Required.
+"""
 
 SECTION_CONFIG = [
     {

@@ -1,3 +1,5 @@
+"""Tests for role extraction and authorization checks in authz."""
+
 from django.conf import settings
 from django.test import RequestFactory, SimpleTestCase
 

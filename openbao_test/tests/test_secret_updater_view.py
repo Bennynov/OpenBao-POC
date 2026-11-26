@@ -1,3 +1,5 @@
+"""Tests for the secret_updater view (GET render and POST save)."""
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from unittest.mock import ANY, patch
